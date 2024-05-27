@@ -25,8 +25,37 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
     const recipesCollection = client.db().collection("recipes");
+    const usersCollection = client.db().collection("users");
     app.get("/", (req, res) => {
       res.send("Welcome to the home route!");
+    });
+
+    app.post("/login", async (req, res) => {
+      try {
+        // Find user by email
+        const response = await usersCollection.findOne({ email: req.body.email });
+        console.log(response);
+
+        if (!response) {
+          const response = await usersCollection.insertOne(req.body);
+          res.send({ ...req.body });
+        } else {
+          res.send(response);
+        }
+      } catch (error) {
+        console.error("Error during login:", error);
+        res.status(500).send({ error: "An error occurred during login" });
+      }
+    });
+
+    app.get("/user", async (req, res) => {
+      const { email } = req.query;
+      try {
+        const response = await usersCollection.findOne({ email: email });
+        res.send(response);
+      } catch (error) {
+        console.log(error);
+      }
     });
 
     app.post("/add-recipe", async (req, res) => {
