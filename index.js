@@ -30,9 +30,9 @@ async function run() {
       res.send("Welcome to the home route!");
     });
 
+    //User Routes
     app.post("/login", async (req, res) => {
       try {
-        // Find user by email
         const response = await usersCollection.findOne({ email: req.body.email });
         console.log(response);
 
@@ -84,15 +84,7 @@ async function run() {
       }
     });
 
-    app.get("/all-recipes", async (req, res) => {
-      try {
-        const response = await recipesCollection.find().toArray();
-        res.send(response);
-      } catch (error) {
-        console.log(error);
-        res.status(500).send({ message: "Internal server error" });
-      }
-    });
+    // Recipe Routes
 
     app.post("/add-recipe", async (req, res) => {
       try {
@@ -100,6 +92,16 @@ async function run() {
         res.send(response);
       } catch (error) {
         console.error(error);
+        res.status(500).send({ message: "Internal server error" });
+      }
+    });
+
+    app.get("/all-recipes", async (req, res) => {
+      try {
+        const response = await recipesCollection.find().toArray();
+        res.send(response);
+      } catch (error) {
+        console.log(error);
         res.status(500).send({ message: "Internal server error" });
       }
     });
