@@ -43,8 +43,8 @@ async function run() {
           res.send(response);
         }
       } catch (error) {
-        console.error("Error during login:", error);
-        res.status(500).send({ error: "An error occurred during login" });
+        console.error(error);
+        res.status(500).send({ message: "Internal server error" });
       }
     });
 
@@ -55,13 +55,77 @@ async function run() {
         res.send(response);
       } catch (error) {
         console.log(error);
+        res.status(500).send({ message: "Internal server error" });
+      }
+    });
+
+    app.put("/update-user/:email", async (req, res) => {
+      try {
+        console.log(req.params.email, req.body);
+        const email = req.params.email;
+        const user = await usersCollection.findOne({ email: email });
+
+        if (!user) {
+          return res.status(404).send({ message: "User not found" });
+        }
+
+        const newCoinBalance = (user.coin || 0) + req.body.coin * 1;
+
+        const response = await usersCollection.findOneAndUpdate(
+          { email: email },
+          { $set: { coin: newCoinBalance } },
+          { returnOriginal: false }
+        );
+
+        res.send({ ...response, coin: newCoinBalance });
+      } catch (error) {
+        console.error(error);
+        res.status(500).send({ message: "Internal server error" });
+      }
+    });
+
+    app.get("/all-recipes", async (req, res) => {
+      try {
+        const response = await recipesCollection.find().toArray();
+        res.send(response);
+      } catch (error) {
+        console.log(error);
+        res.status(500).send({ message: "Internal server error" });
       }
     });
 
     app.post("/add-recipe", async (req, res) => {
-      console.log(req.body);
-      const response = await recipesCollection.insertOne(req.body);
-      res.send(response);
+      try {
+        const response = await recipesCollection.insertOne(req.body);
+        res.send(response);
+      } catch (error) {
+        console.error(error);
+        res.status(500).send({ message: "Internal server error" });
+      }
+    });
+
+    app.put("/update-recipe/:id", async (req, res) => {
+      try {
+        const recipeId = req.params.id;
+        const recipe = await recipesCollection.findOne({ _id: new ObjectId(recipeId) });
+
+        if (!recipe) {
+          return res.status(404).send({ message: "Recipe not found" });
+        }
+
+        const newPurchasedBy = [...recipe.purchased_by, req.body.purchased_by];
+
+        const response = await recipesCollection.findOneAndUpdate(
+          { _id: new ObjectId(recipeId) },
+          { $set: { purchased_by: newPurchasedBy } },
+          { returnOriginal: false }
+        );
+
+        res.send({ ...response, purchased_by: newPurchasedBy });
+      } catch (error) {
+        console.error(error);
+        res.status(500).send({ message: "Internal server error" });
+      }
     });
 
     // Send a ping to confirm a successful connection
