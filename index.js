@@ -7,6 +7,8 @@ require("dotenv").config();
 app.use(cors());
 app.use(express.json());
 
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+
 const port = process.env.PORT || 5000;
 
 const uri = process.env.URI;
@@ -106,6 +108,16 @@ async function run() {
       }
     });
 
+    app.get("/recipe/:id", async (req, res) => {
+      try {
+        const response = await recipesCollection.findOne({ _id: new ObjectId(req.params.id) });
+        res.send(response);
+      } catch (error) {
+        console.log(error);
+        res.status(500).send({ message: "Internal server error" });
+      }
+    });
+
     app.put("/update-recipe/:id", async (req, res) => {
       try {
         const recipeId = req.params.id;
@@ -116,18 +128,46 @@ async function run() {
         }
 
         const newPurchasedBy = [...recipe.purchased_by, req.body.purchased_by];
+        const newWatchCount = recipe.watchCount + 1;
 
         const response = await recipesCollection.findOneAndUpdate(
           { _id: new ObjectId(recipeId) },
-          { $set: { purchased_by: newPurchasedBy } },
+          { $set: { purchased_by: newPurchasedBy, watchCount: newWatchCount } },
           { returnOriginal: false }
         );
 
-        res.send({ ...response, purchased_by: newPurchasedBy });
+        res.send({ ...response, purchased_by: newPurchasedBy, watchCount: newWatchCount });
       } catch (error) {
         console.error(error);
         res.status(500).send({ message: "Internal server error" });
       }
+    });
+
+    // Stripe Payment
+    const calculateOrderAmount = price => {
+      // Replace this constant with a calculation of the order's amount
+      // Calculate the order total on the server to prevent
+      // people from directly manipulating the amount on the client
+      const finalPrice = price * 100;
+      return finalPrice;
+    };
+
+    app.post("/create-payment-intent", async (req, res) => {
+      const { price } = req.body;
+
+      // Create a PaymentIntent with the order amount and currency
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: calculateOrderAmount(price),
+        currency: "usd",
+        // In the latest version of the API, specifying the `automatic_payment_methods` parameter is optional because Stripe enables its functionality by default.
+        automatic_payment_methods: {
+          enabled: true
+        }
+      });
+
+      res.send({
+        clientSecret: paymentIntent.client_secret
+      });
     });
 
     // Send a ping to confirm a successful connection
