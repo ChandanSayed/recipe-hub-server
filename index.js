@@ -98,13 +98,39 @@ async function run() {
       }
     });
 
+    // app.get("/all-recipes", async (req, res) => {
+    //   try {
+    //     const response = await recipesCollection.find().toArray();
+    //     res.send(response);
+    //   } catch (error) {
+    //     console.log(error);
+    //     res.status(500).send({ message: "Internal server error" });
+    //   }
+    // });
+
+    // API endpoint to get recipes with pagination
     app.get("/all-recipes", async (req, res) => {
       try {
-        const response = await recipesCollection.find().toArray();
+        // Parse page and limit from query parameters, with defaults if not provided
+        const page = parseInt(req.query.page, 10) || 0;
+        const limit = parseInt(req.query.limit, 10) || 8;
+
+        // Ensure page and limit are non-negative
+        if (page < 0 || limit <= 0) {
+          return res.status(400).json({ error: "Page and limit must be positive numbers" });
+        }
+
+        // Calculate the number of documents to skip
+        const skip = page * limit;
+
+        // Fetch recipes from the collection
+        const response = await recipesCollection.find().skip(skip).limit(limit).toArray();
+
+        // Send the response
         res.send(response);
-      } catch (error) {
-        console.log(error);
-        res.status(500).send({ message: "Internal server error" });
+      } catch (err) {
+        console.error("Failed to fetch recipes:", err); // Log the error for debugging
+        res.status(500).json({ error: "Failed to fetch recipes" });
       }
     });
 
