@@ -1,4 +1,5 @@
 const express = require("express");
+const jwt = require("jsonwebtoken");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const app = express();
 const cors = require("cors");
@@ -40,9 +41,17 @@ async function run() {
 
         if (!response) {
           const response = await usersCollection.insertOne(req.body);
-          res.send({ ...req.body });
+          // res.send({ ...req.body });
+          const token = jwt.sign({ _id: response.insertedId }, process.env.JWTSECRET, {
+            expiresIn: "1d"
+          });
+          res.json({ user: req.body, token: token });
         } else {
-          res.send(response);
+          // res.send(response);
+          const token = jwt.sign({ _id: response._id }, process.env.JWTSECRET, {
+            expiresIn: "1d"
+          });
+          res.json({ user: response, token: token });
         }
       } catch (error) {
         console.error(error);
