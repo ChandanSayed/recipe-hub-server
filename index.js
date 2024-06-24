@@ -33,6 +33,16 @@ async function run() {
       res.send("Welcome to the home route!");
     });
 
+    function userMustLogin(req, res, next) {
+      try {
+        jwt.verify(req.body.token, process.env.JWTSECRET);
+        next();
+      } catch (error) {
+        console.log("Use must be logged in!");
+        return res.status(401).send({ message: "Unauthorized" });
+      }
+    }
+
     //User Routes
     app.post("/login", async (req, res) => {
       try {
@@ -143,7 +153,7 @@ async function run() {
       }
     });
 
-    app.put("/update-recipe/:id", async (req, res) => {
+    app.put("/update-recipe/:id", userMustLogin, async (req, res) => {
       try {
         const recipeId = req.params.id;
         const recipe = await recipesCollection.findOne({ _id: new ObjectId(recipeId) });
