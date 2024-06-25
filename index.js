@@ -80,7 +80,7 @@ async function run() {
       }
     });
 
-    app.put("/update-user/:email", async (req, res) => {
+    app.put("/update-user/:email", userMustLogin, async (req, res) => {
       try {
         console.log(req.params.email, req.body);
         const email = req.params.email;
