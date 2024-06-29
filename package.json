@@ -2,9 +2,9 @@
   "name": "ph-web-instructor-backend",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "db.js",
   "scripts": {
-    "start": "nodemon index"
+    "start": "nodemon db"
   },
   "keywords": [],
   "author": "",
