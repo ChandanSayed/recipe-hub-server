@@ -1,13 +1,4 @@
-const dbConnection = require("../db");
-const clientPromise = dbConnection();
-let usersCollection;
-async function getUsersCollection() {
-  const client = await clientPromise;
-  usersCollection = client.db().collection("users");
-  return client.db().collection("users");
-}
-getUsersCollection();
-
+const dbConnection = require("../db").db().collection("users");
 require("dotenv").config();
 const jwt = require("jsonwebtoken");
 
@@ -18,8 +9,6 @@ exports.home = function (req, res) {
 
 exports.login = async (req, res) => {
   try {
-    // const client = await clientPromise;
-    // const usersCollection = client.db().collection("users");
     const response = await usersCollection.findOne({ email: req.body.email });
     console.log(response);
 
@@ -46,8 +35,6 @@ exports.login = async (req, res) => {
 exports.user = async function (req, res) {
   const { email } = req.query;
   try {
-    // const client = await clientPromise;
-    // const usersCollection = client.db().collection("users");
     const response = await usersCollection.findOne({ email: email });
     return res.send(response);
   } catch (error) {
@@ -58,8 +45,6 @@ exports.user = async function (req, res) {
 
 exports.updateUser = async (req, res) => {
   try {
-    // const client = await clientPromise;
-    // const usersCollection = client.db().collection("users");
     console.log(req.params.email, req.body);
     const email = req.params.email;
     const user = await usersCollection.findOne({ email: email });
