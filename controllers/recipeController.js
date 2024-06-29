@@ -1,6 +1,7 @@
-// Recipe Routes
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+const recipesCollection = require("../db").db().collection("recipes");
 
-app.post("/add-recipe", async (req, res) => {
+exports.addRecipe = async function (req, res) {
   try {
     const response = await recipesCollection.insertOne(req.body);
     res.send(response);
@@ -8,19 +9,9 @@ app.post("/add-recipe", async (req, res) => {
     console.error(error);
     res.status(500).send({ message: "Internal server error" });
   }
-});
+};
 
-// app.get("/all-recipes", async (req, res) => {
-//   try {
-//     const response = await recipesCollection.find().toArray();
-//     res.send(response);
-//   } catch (error) {
-//     console.log(error);
-//     res.status(500).send({ message: "Internal server error" });
-//   }
-// });
-
-app.get("/all-recipes", async (req, res) => {
+exports.getRecipes = async function (req, res) {
   try {
     const page = parseInt(req.query.page, 10) || 0;
     const limit = parseInt(req.query.limit, 10) || 8;
@@ -48,9 +39,9 @@ app.get("/all-recipes", async (req, res) => {
     console.error("Failed to fetch recipes:", err); // Log the error for debugging
     res.status(500).json({ error: "Failed to fetch recipes" });
   }
-});
+};
 
-app.get("/recipe/:id", async (req, res) => {
+exports.recipeDetails = async function (req, res) {
   try {
     const response = await recipesCollection.findOne({ _id: new ObjectId(req.params.id) });
     res.send(response);
@@ -58,9 +49,9 @@ app.get("/recipe/:id", async (req, res) => {
     console.log(error);
     res.status(500).send({ message: "Internal server error" });
   }
-});
+};
 
-app.put("/update-recipe/:id", userMustLogin, async (req, res) => {
+exports.updateRecipe = async function (req, res) {
   try {
     const recipeId = req.params.id;
     const recipe = await recipesCollection.findOne({ _id: new ObjectId(recipeId) });
@@ -83,7 +74,7 @@ app.put("/update-recipe/:id", userMustLogin, async (req, res) => {
     console.error(error);
     res.status(500).send({ message: "Internal server error" });
   }
-});
+};
 
 // Stripe Payment
 const calculateOrderAmount = price => {
@@ -93,21 +84,3 @@ const calculateOrderAmount = price => {
   const finalPrice = price * 100;
   return finalPrice;
 };
-
-app.post("/create-payment-intent", async (req, res) => {
-  const { price } = req.body;
-
-  // Create a PaymentIntent with the order amount and currency
-  const paymentIntent = await stripe.paymentIntents.create({
-    amount: calculateOrderAmount(price),
-    currency: "usd",
-    // In the latest version of the API, specifying the `automatic_payment_methods` parameter is optional because Stripe enables its functionality by default.
-    automatic_payment_methods: {
-      enabled: true
-    }
-  });
-
-  res.send({
-    clientSecret: paymentIntent.client_secret
-  });
-});
