@@ -22,6 +22,4 @@ router.post("/create-payment-intent", paymentController.payment);
 
 module.exports = router;
 
-// const express = require('express');
-
 module.exports = router;

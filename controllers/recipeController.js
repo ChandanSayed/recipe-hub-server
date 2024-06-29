@@ -1,4 +1,4 @@
-const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+const { ObjectId } = require("mongodb");
 const recipesCollection = require("../db").db().collection("recipes");
 
 exports.addRecipe = async function (req, res) {
