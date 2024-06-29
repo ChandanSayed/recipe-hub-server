@@ -1,6 +1,13 @@
 const { ObjectId } = require("mongodb");
-const recipesCollection = require("../db").db().collection("recipes");
-
+const dbConnection = require("../db");
+const clientPromise = dbConnection();
+let recipesCollection;
+async function getRecipeCollection() {
+  const client = await clientPromise;
+  recipesCollection = client.db().collection("recipes");
+  return client.db().collection("recipes");
+}
+getRecipeCollection();
 exports.addRecipe = async function (req, res) {
   try {
     const response = await recipesCollection.insertOne(req.body);
