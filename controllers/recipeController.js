@@ -3,7 +3,7 @@ const recipesCollection = require("../").db().collection("recipes");
 
 exports.addRecipe = async function (req, res) {
   try {
-    const response = await recipesCollection.insertOne(req.body);
+    const response = await recipesCollection.insertOne(req.body.recipe);
     res.send(response);
   } catch (error) {
     console.error(error);
@@ -16,8 +16,6 @@ exports.getRecipes = async function (req, res) {
     const page = parseInt(req.query.page, 10) || 0;
     const limit = parseInt(req.query.limit, 10) || 8;
     const searchText = req.query.search || "";
-
-    console.log(req.query);
 
     if (page < 0 || limit <= 0) {
       return res.status(400).json({ error: "Page and limit must be positive numbers" });
@@ -34,7 +32,6 @@ exports.getRecipes = async function (req, res) {
 
     const response = await recipesCollection.find(query).skip(skip).limit(limit).toArray();
     res.send(response);
-    console.log(response);
   } catch (err) {
     console.error("Failed to fetch recipes:", err); // Log the error for debugging
     res.status(500).json({ error: "Failed to fetch recipes" });

@@ -1,26 +1,22 @@
-const dbConnection = require("../db").db().collection("users");
+const usersCollection = require("../db").db().collection("users");
 require("dotenv").config();
 const jwt = require("jsonwebtoken");
 
 exports.home = function (req, res) {
-  console.log("Hello");
   res.send("Welcome to the home route from router!");
 };
 
 exports.login = async (req, res) => {
   try {
     const response = await usersCollection.findOne({ email: req.body.email });
-    console.log(response);
 
     if (!response) {
       const response = await usersCollection.insertOne(req.body);
-      // res.send({ ...req.body });
       const token = jwt.sign({ _id: response.insertedId }, process.env.JWTSECRET, {
         expiresIn: "1d"
       });
       res.json({ user: req.body, token: token });
     } else {
-      // res.send(response);
       const token = jwt.sign({ _id: response._id }, process.env.JWTSECRET, {
         expiresIn: "1d"
       });
@@ -36,7 +32,7 @@ exports.user = async function (req, res) {
   const { email } = req.query;
   try {
     const response = await usersCollection.findOne({ email: email });
-    return res.send(response);
+    res.send(response);
   } catch (error) {
     console.log(error);
     res.status(500).send({ message: "Internal server error" });
@@ -45,7 +41,6 @@ exports.user = async function (req, res) {
 
 exports.updateUser = async (req, res) => {
   try {
-    console.log(req.params.email, req.body);
     const email = req.params.email;
     const user = await usersCollection.findOne({ email: email });
 
